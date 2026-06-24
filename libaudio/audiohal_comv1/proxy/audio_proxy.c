@@ -4547,6 +4547,17 @@ int proxy_read_capture_buffer(void *proxy_stream, void *buffer, int bytes)
     if (frames_actual < 0) {
         return frames_actual;
     } else {
+        /* FM Tuner gain boost */
+#ifdef FM_TUNER_GAIN_BOOST
+        if (apstream->stream_type == ASTREAM_CAPTURE_FM_TUNER) {
+            int16_t *samples = (int16_t *)buffer;
+            size_t sample_count = bytes / sizeof(int16_t);
+            for (size_t i = 0; i < sample_count; i++) {
+                int32_t val = (int32_t)samples[i] * FM_TUNER_GAIN_BOOST;
+                samples[i] = (int16_t)(val > 32767 ? 32767 : val < -32768 ? -32768 : val);
+            }
+        }
+#endif
         /* Saves read frames to calcurate timestamp */
         apstream->frames += frames_actual;
         ALOGVV("%s-%s: cumulative read = %u frames", stream_table[apstream->stream_type], __func__,
