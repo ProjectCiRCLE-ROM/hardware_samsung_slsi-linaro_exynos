@@ -4397,6 +4397,12 @@ int proxy_open_capture_stream(void *proxy_stream, int32_t min_size_frames, void 
         apstream->dma_pcm = NULL;
         apstream->compress = NULL;
 
+        /* Break backdoor to avoid duplicated FM output */
+#ifdef FM_TUNER_BACKDOOR_MIXER
+        if (apstream->stream_type == ASTREAM_CAPTURE_FM_TUNER)
+            proxy_set_mixer_value_string(aproxy, FM_TUNER_BACKDOOR_MIXER, "None");
+#endif
+
         if (apstream->stream_type == ASTREAM_CAPTURE_MMAP) {
             unsigned int offset1 = 0;
             unsigned int frames1 = 0;
